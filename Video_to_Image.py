@@ -1,20 +1,30 @@
-import cv2
+import tensorflow as tf
+import keras
+from tensorflow.keras.preprocessing import image_dataset_from_directory
+import numpy as np
 
-# Opens the inbuilt camera of laptop to capture video.
-cap = cv2.VideoCapture(1)  #If it is zero, the computer uses its own camera, if it is one, it detects the external camera.
+model = keras.models.load_model("omer2.model")
+
+cap = cv2.VideoCapture(0)
 i = 0
 
 while (cap.isOpened()):
     ret, frame = cap.read()
-
-    # This condition prevents from infinite looping
-    # incase video ends.
     if ret == False:
         break
-
-    # Save Frame by Frame into disk using imwrite method
-    cv2.imwrite('data/photo/frame' + str(i) + '.jpg', frame)
+    img = cv2.imwrite("foto/{i}.jpg",frame)
     i += 1
-
-cap.release()
+    k = cv2.waitKey(500) & 0xff
+    foto = tf.keras.preprocessing.image.load_img("foto/{i}.jpg", target_size=(256, 256))  # test edilecek fotoyu yukledim
+    foto_matrisi = tf.keras.preprocessing.image.img_to_array(foto)  # test fotosunu matrise cevirdim
+    foto_matrisi = np.expand_dims(foto_matrisi, axis=0)
+    tahmin = model.predict(foto_matrisi)
+    # modele tahmin yaptim
+    if tahmin[0][0] == 1:
+        print("MASKELİ ÖMER")
+    if tahmin[0][1] == 1:
+        print("MASKESİZ ÖMER")
+    if k == 27:
+        break
+cv2.waitKey(0)
 cv2.destroyAllWindows()
